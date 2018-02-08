@@ -1,0 +1,16 @@
+[package]
+authors = ["Garrett Berg <vitiral@gmail.com>"]
+description = "The expect! macro"
+documentation = "https://docs.rs/expect_macro"
+keywords = [
+    "expect",
+    "unwrap",
+    "macro",
+]
+license = "MIT OR Apache-2.0"
+name = "expect_macro"
+readme = "README.md"
+repository = "https://github.com/vitiral/expect_macro"
+version = "0.1.0"
+
+[dependencies]
