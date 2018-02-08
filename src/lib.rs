@@ -12,6 +12,7 @@
 //!
 //! - Includes the exact line number of the error
 //! - Allows you to specify a custom error message with formatting.
+//! - Lazy evaluates error conditions (unlike `result.expect(&format!(...))`)
 //!
 //! This gives you panic messages like this:
 //!
@@ -23,6 +24,17 @@
 //!
 //! ```no_compile
 //! thread 'example' panicked at 'called `Result::unwrap()` on an `Err` value: "expect error"', libcore/result.rs:945:5
+//! ```
+//!
+//! # Alternatives
+//!
+//! If you need to include the `Err` in a custom error message then do this instead:
+//!
+//! ```rust,should_panic
+//! # fn main() {
+//! let result = Err("expect error");
+//! result.unwrap_or_else(|err| panic!("Got {} but expected 42", err));
+//! # }
 //! ```
 
 /// Unwrap a result or `panic!` with a message.
