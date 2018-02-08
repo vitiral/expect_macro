@@ -39,7 +39,7 @@
 
 /// Unwrap a result or `panic!` with a message.
 ///
-/// Works with [`Result`], [`Option`] and anything else with the `unwrap_or_else` method.
+/// Works with [`Result`] and [`Option`].
 ///
 /// This macro has two forms:
 ///
@@ -57,6 +57,7 @@
 ///
 /// ```rust,should_panic
 /// #[macro_use] extern crate expect_macro;
+/// use expect_macro::*;
 ///
 /// # fn main() {
 /// let result = Err("expect error");
@@ -71,6 +72,7 @@
 ///
 /// ```rust,should_panic
 /// #[macro_use] extern crate expect_macro;
+/// use expect_macro::*;
 ///
 /// # fn main() {
 /// let result = Err("expect error");
@@ -80,20 +82,38 @@
 /// // COMPILER OUTPUT:
 /// // thread 'example' panicked at 'Some values: 1, 2', src/lib.rs:5:5
 /// ```
-///
-///
 #[macro_export]
 macro_rules! expect {
     [$result:expr, $($rest:tt)*] => {
-        $result.unwrap_or_else(|_| {
+        $result.into_result().unwrap_or_else(|_| {
             panic!($($rest)*)
         })
     };
     [$result:expr] => {
-        $result.unwrap_or_else(|e| {
+        $result.into_result().unwrap_or_else(|e| {
             panic!("{:?}", e)
         })
     };
+}
+
+/// Used to ensure either `Option` or `Result` are the `Result` type.
+pub trait IntoResult<T, E> {
+    fn into_result(self) -> Result<T, E>;
+}
+
+impl<T, E> IntoResult<T, E> for Result<T, E> {
+    fn into_result(self) -> Result<T, E> {
+        self
+    }
+}
+
+impl<T> IntoResult<T, &'static str> for Option<T> {
+    fn into_result(self) -> Result<T, &'static str> {
+        match self {
+            Some(v) => Ok(v),
+            None => Err("Got value of None"),
+        }
+    }
 }
 
 #[test]
@@ -113,4 +133,32 @@ fn regular_panic_bare() {
 #[should_panic]
 fn expect_panic_msg() {
     expect!(Err("expect error"), "Some values: {}, {}", 1, 2);
+}
+
+#[test]
+#[should_panic]
+fn sanity_chain() {
+    fn foo(a: ()) -> Result<(), &'static str> {
+        Ok(a)
+    }
+
+    #[allow(unused_variables)]
+    fn bar(a: ()) -> Result<(), &'static str> {
+        Err("expect error")
+    }
+
+    let a = ();
+    expect!(bar(expect!(foo(a))));
+}
+
+#[test]
+#[should_panic]
+fn sanity_option_plain() {
+    expect!(None);
+}
+
+#[test]
+#[should_panic]
+fn sanity_option_msg() {
+    expect!(None, "Got None, expected 42");
 }
