@@ -85,12 +85,12 @@
 #[macro_export]
 macro_rules! expect {
     [$result:expr, $($rest:tt)*] => {
-        $result.into_result().unwrap_or_else(|_| {
+        $crate::IntoResult::into_result($result).unwrap_or_else(|_| {
             panic!($($rest)*)
         })
     };
     [$result:expr] => {
-        $result.into_result().unwrap_or_else(|e| {
+        $crate::IntoResult::into_result($result).unwrap_or_else(|e| {
             panic!("{:?}", e)
         })
     };
